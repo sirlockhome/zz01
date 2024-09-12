@@ -21,6 +21,6 @@ redis:
 auth:
   AccessKey: ...
   RefreshKey: ...
-  AccessExp: 2000000
+  AccessExp: 20
   RefreshExp: 1440
   AutoLogoffMinutes: 10
