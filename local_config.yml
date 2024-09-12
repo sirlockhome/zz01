@@ -3,24 +3,24 @@ server:
   Addr: http://localhost:1508/
 
 sqlserver:
-  Server: 103.168.58.235
-  Username: sapb1
-  Password: FoxAi%$2023
-  Port: 14388
-  Database: ff01
+  Server: ..
+  Username: ..
+  Password: ..
+  Port: ..
+  Database: ..
   MaxOpenConns: 25
   MaxIdleConns: 25
   ConnMaxLifeTime: 5
 
 redis:
-  Addr: redis-13626.c1.asia-northeast1-1.gce.redns.redis-cloud.com:13626
-  Password: b1de5zx77hITJGzkTNb5AYyk6omaikbR
-  Username: default
+  Addr: ...
+  Password: ...
+  Username: ...
   DB: 0
 
 auth:
-  AccessKey: jarviisha
-  RefreshKey: foxai
-  AccessExp: 2000000
+  AccessKey: ...
+  RefreshKey: ...
+  AccessExp: 20
   RefreshExp: 1440
   AutoLogoffMinutes: 10
