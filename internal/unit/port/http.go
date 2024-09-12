@@ -25,12 +25,19 @@ func NewHTTPHandler(svc *service.Service) *HTTPHandler {
 
 func (hh *HTTPHandler) Routes(r *mux.Router, mwf ...mux.MiddlewareFunc) {
 	unit := r.PathPrefix("/units").Subrouter()
+	unitGroup := r.PathPrefix("/unit-groups").Subrouter()
+	unitGroup.Use(mwf...)
 	unit.Use(mwf...)
 
 	unit.HandleFunc("", hh.CreateUnit).Methods(http.MethodPost)
 	unit.HandleFunc("", hh.GetUnitPage).Methods(http.MethodGet)
 	unit.HandleFunc("/{unit_id}", hh.GetUnitByID).Methods(http.MethodGet)
 	unit.HandleFunc("/{unit_id}", hh.UpdatedUnit).Methods(http.MethodPut)
+
+	unitGroup.HandleFunc("", hh.CreateUnitGroup).Methods(http.MethodPost)
+	unitGroup.HandleFunc("", hh.GetUnitGroupPage).Methods(http.MethodGet)
+	unitGroup.HandleFunc("/{unit_group_id}", hh.GetUnitGroupByID).Methods(http.MethodGet)
+	unitGroup.HandleFunc("/{unit_group_id}/conversions", hh.AddUnitConversions).Methods(http.MethodPost)
 }
 
 func (hh *HTTPHandler) CreateUnit(w http.ResponseWriter, r *http.Request) {
