@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"foxomni/internal/product/model"
 	"foxomni/pkg/errs"
+	"foxomni/pkg/req"
 	"foxomni/pkg/resp"
 	"net/http"
 	"strconv"
@@ -77,4 +78,24 @@ func (hh *HTTPHandler) ChangeThumbnail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp.WriteJSONMessage(w, "change thumbnail success", http.StatusOK)
+}
+
+func (hh *HTTPHandler) ChangeActive(isActive bool) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
+		id, err := req.GetIntFromVars(r, "product_id")
+		if err != nil {
+			errs.HTTPErrorResponse(ctx, w, err)
+			return
+		}
+
+		err = hh.svc.ChangeActive(ctx, id, isActive)
+		if err != nil {
+			errs.HTTPErrorResponse(ctx, w, err)
+			return
+		}
+
+		resp.WriteJSONMessage(w, "change active success", http.StatusOK)
+	}
 }

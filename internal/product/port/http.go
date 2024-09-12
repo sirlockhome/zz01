@@ -33,6 +33,8 @@ func (hh *HTTPHandler) Routes(r *mux.Router, mwf ...mux.MiddlewareFunc) {
 	prdGroup.HandleFunc("/{product_id}", hh.DeleteProduct).Methods(http.MethodDelete)
 
 	prdGroup.HandleFunc("/{product_id}/thumbnail", hh.ChangeThumbnail).Methods(http.MethodPut)
+	prdGroup.HandleFunc("/{product_id}/active", hh.ChangeActive(true)).Methods(http.MethodPut)
+	prdGroup.HandleFunc("/{product_id}/deactive", hh.ChangeActive(false)).Methods(http.MethodPut)
 
 	prdGroup.HandleFunc("/{product_id}/images", hh.AddImages).Methods(http.MethodPost)
 	prdGroup.HandleFunc("/{product_id}/images/{image_id}", hh.RemoveImage).Methods(http.MethodDelete)

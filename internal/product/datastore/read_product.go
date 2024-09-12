@@ -54,9 +54,12 @@ func (ds *Datastore) GetProductByID(ctx context.Context, id int) (*model.Product
 		return nil, err
 	}
 
+	unitGrp, _ := ds.getUnitGroup(ctx, prd.ID)
+
 	prd.ProductImages = imgList
 	prd.ProductAttachments = attList
 	prd.ProductCategories = catList
+	prd.UnitGroup = unitGrp
 
 	return &prd, nil
 }
@@ -97,6 +100,12 @@ func (ds *Datastore) GetProducts(ctx context.Context, offset, limit int) ([]*mod
 			prd.ThumbnailLink = &link
 		}
 
+		unitGrp, err := ds.getUnitGroup(ctx, prd.ID)
+		if err != nil {
+			return nil, err
+		}
+		prd.UnitGroup = unitGrp
+
 		prdList = append(prdList, &prd)
 	}
 
@@ -114,4 +123,63 @@ func (ds *Datastore) GetProductCount(ctx context.Context) (int, error) {
 	}
 
 	return count, nil
+}
+
+func (ds *Datastore) getUnitGroup(ctx context.Context, prdID int) (*model.UnitGroup, error) {
+	query := `
+	SELECT 
+		ug.id, ug.unit_group_name, ug.base_unit_id, u.unit_name AS base_unit_name, ug.symbol,
+		ug.description 
+	FROM unit_groups ug 
+	LEFT JOIN products p ON p.unit_group_id = ug.id
+	LEFT JOIN units u ON ug.base_unit_id = u.id
+	WHERE p.id = @p1
+	`
+
+	var grp model.UnitGroup
+	if err := ds.sql.DB.GetContext(ctx, &grp, query, prdID); err != nil {
+		return nil, err
+	}
+
+	convList, err := ds.getUnitConversions(ctx, grp.ID)
+	if err != nil {
+		return nil, err
+	}
+
+	grp.UnitConversions = convList
+	return &grp, nil
+}
+
+func (ds *Datastore) getUnitConversions(ctx context.Context, grpID int) ([]*model.UnitConversion, error) {
+	query := `
+	SELECT 
+		ucv.to_unit_id, u.unit_name AS to_unit_name,
+		ucv.base_qty, ucv.alt_qty
+	FROM unit_conversions ucv
+	LEFT JOIN unit_groups ug ON ucv.unit_group_id = ug.id
+	LEFT JOIN units u ON u.id = ucv.to_unit_id
+	WHERE ug.id = @p1
+	`
+
+	rows, err := ds.sql.DB.QueryxContext(ctx, query, grpID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, errs.New(errs.Internal, err)
+	}
+
+	defer rows.Close()
+
+	var convList []*model.UnitConversion
+	for rows.Next() {
+		var conv model.UnitConversion
+		if err := rows.StructScan(&conv); err != nil {
+			return nil, errs.New(errs.Internal, err)
+		}
+
+		convList = append(convList, &conv)
+	}
+
+	return convList, nil
 }

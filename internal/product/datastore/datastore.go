@@ -1,6 +1,8 @@
 package datastore
 
-import "foxomni/pkg/database"
+import (
+	"foxomni/pkg/database"
+)
 
 type Datastore struct {
 	sql *database.SQL

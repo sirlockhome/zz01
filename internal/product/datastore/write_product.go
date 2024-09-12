@@ -48,3 +48,17 @@ func (ds *Datastore) ChangeThumbnail(ctx context.Context, prdID int, imgID strin
 
 	return nil
 }
+
+func (ds *Datastore) ChangeActive(ctx context.Context, prdID int, isActive bool) error {
+	query := `
+	UPDATE products SET
+		is_active = @p1
+	WHERE id = @p2
+	`
+	_, err := ds.sql.DB.ExecContext(ctx, query, isActive, prdID)
+	if err != nil {
+		return errs.New(errs.Internal, err)
+	}
+
+	return nil
+}
