@@ -23,6 +23,11 @@ func NewHTTPHandler(svc *service.Service) *HTTPHandler {
 
 func (hh *HTTPHandler) Routes(r *mux.Router, mwf ...mux.MiddlewareFunc) {
 	r.HandleFunc("/login", hh.Login).Methods(http.MethodPost)
+
+	me := r.PathPrefix("/me").Subrouter()
+	me.Use(mwf...)
+
+	me.HandleFunc("", hh.GetMe).Methods(http.MethodGet)
 }
 
 func (hh *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
@@ -41,4 +46,16 @@ func (hh *HTTPHandler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	resp.WriteJSONData(w, userAuth, http.StatusOK)
+}
+
+func (hh *HTTPHandler) GetMe(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	m, err := hh.svc.GetMe(ctx)
+	if err != nil {
+		errs.HTTPErrorResponse(ctx, w, err)
+		return
+	}
+
+	resp.WriteJSONData(w, m, http.StatusOK)
 }

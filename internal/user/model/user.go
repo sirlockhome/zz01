@@ -5,7 +5,7 @@ import "time"
 type User struct {
 	ID           int        `json:"id"`
 	Username     string     `json:"username"`
-	Password     string     `json:"password"`
+	Password     string     `json:"password,omitempty"`
 	PasswordHash string     `json:"-" db:"password_hash"`
 	FirstName    string     `json:"first_name" db:"first_name"`
 	LastName     string     `json:"last_name" db:"last_name"`

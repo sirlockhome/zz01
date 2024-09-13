@@ -25,7 +25,9 @@ func NewHTTPHandler(svc *service.Service) *HTTPHandler {
 
 func (hh *HTTPHandler) Routes(r *mux.Router, mwf ...mux.MiddlewareFunc) {
 	partner := r.PathPrefix("/partners").Subrouter()
+	partnerGroup := r.PathPrefix("/partner-groups").Subrouter()
 	partner.Use(mwf...)
+	partnerGroup.Use(mwf...)
 
 	partner.HandleFunc("", hh.CreatePartner).Methods(http.MethodPost)
 	partner.HandleFunc("", hh.GetPartnerPage).Methods(http.MethodGet)

@@ -17,11 +17,35 @@ func (ds *Datastore) GetUserByUsername(ctx context.Context, username string) (*m
 		u.created_at, u.updated_at
 	FROM 
 		users u
-	WHERE username = @p1
+	WHERE u.username = @p1
 	`
 
 	var user model.User
 	if err := ds.sql.DB.GetContext(ctx, &user, query, username); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, errs.New(errs.NotFound, err)
+		}
+
+		return nil, errs.New(errs.Internal, err)
+	}
+
+	return &user, nil
+}
+
+func (ds *Datastore) GetUserByID(ctx context.Context, id int) (*model.User, error) {
+	query := `
+	SELECT 
+		u.id, u.username, u.first_name,
+		u.last_name, u.gender, u.date_of_birth, u.email,
+		u.phone_number, u.user_type, u.partner_id, u.last_login,
+		u.created_at, u.updated_at
+	FROM 
+		users u
+	WHERE u.id = @p1
+	`
+
+	var user model.User
+	if err := ds.sql.DB.GetContext(ctx, &user, query, id); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, errs.New(errs.NotFound, err)
 		}

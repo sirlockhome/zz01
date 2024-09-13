@@ -14,12 +14,15 @@ import (
 	"foxomni/pkg/jwt"
 	"net/http"
 
+	"github.com/rs/cors"
+
 	"github.com/gorilla/mux"
 )
 
 type HTTPServer struct {
 	port int
 	r    *mux.Router
+	hh   http.Handler
 }
 
 func initMw(conf config.Config) []mux.MiddlewareFunc {
@@ -32,6 +35,12 @@ func initMw(conf config.Config) []mux.MiddlewareFunc {
 
 func NewHTTPServer(conf config.Config, sql *database.SQL) *HTTPServer {
 	r := mux.NewRouter()
+	// Cấu hình CORS
+	corsMiddleware := cors.New(cors.Options{
+		AllowedOrigins: []string{"*"},                             // Cấu hình các domain được phép
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE"},  // Các phương thức HTTP được phép
+		AllowedHeaders: []string{"Content-Type", "Authorization"}, // Các header được phép
+	})
 
 	api := r.PathPrefix("/api/v1").Subrouter()
 	api.Use(mw.RequestLogging)
@@ -44,17 +53,19 @@ func NewHTTPServer(conf config.Config, sql *database.SQL) *HTTPServer {
 	partner.InitHTTPRoutes(sql, api, mwf...)
 	unit.InitHTTPRoutes(sql, api, mwf...)
 	order.InitHTTPRoutes(sql, api, mwf...)
-	user.InitHTTPRoutes(sql, jwt, &conf, api)
+	user.InitHTTPRoutes(sql, jwt, &conf, api, mwf...)
 	category.InitHTTPRoutes(sql, api, mwf...)
+
+	header := corsMiddleware.Handler(r)
 
 	return &HTTPServer{
 		port: conf.Server.Port,
-		r:    r,
+		hh:   header,
 	}
 }
 
 func (s *HTTPServer) RunHTTPServer() error {
 	fmt.Println("starting server...")
 
-	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.r)
+	return http.ListenAndServe(fmt.Sprintf(":%d", s.port), s.hh)
 }
